@@ -14,7 +14,7 @@ class Config:
 def load_config() -> Config:
     env_path = Path(__file__).parent / ".env"
     load_dotenv(env_path)
-    
+
     return Config(
         TOKEN=os.getenv("TOKEN"),
         DATABASE_URL=os.getenv("DATABASE_URL"),

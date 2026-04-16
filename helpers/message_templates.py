@@ -33,7 +33,9 @@ class MessageTemplates:
     PLAN_DETAIL = "📚 <b>{subject}</b>\n📅 Дедлайн: {deadline}\n\n📝 Оберіть завдання:"
     PLAN_DETAIL_NO_TASKS = "📚 <b>{subject}</b>\n📅 Дедлайн: {deadline}\n\n📝 Завдання: немає"
 
-    TASK_ADDED = "✅ Завдання '<b>{title}</b>' додано до плану '<b>{subject}</b>'!\n\n📅 Дедлайн: {deadline}"
+    TASK_ADDED = (
+        "✅ Завдання '<b>{title}</b>' додано до плану '<b>{subject}</b>'!\n\n📅 Дедлайн: {deadline}"
+    )
     TASK_DONE = "✅ Завдання '<b>{title}</b>' позначено як виконане!"
     TASK_UNDONE = "↩️ Завдання '<b>{title}</b>' позначено як невиконане."
     TASK_ALREADY_DONE = "ℹ️ Завдання '<b>{title}</b>' вже виконано."
@@ -54,8 +56,12 @@ class MessageTemplates:
     NO_REMINDERS = "🔔 У вас немає активних нагадувань."
     REMINDERS_LIST = "🔔 <b>Ваші нагадування:</b>\n\n{reminders}"
 
-    REMINDER_TOMORROW = "⏰ <b>Нагадування:</b>\n{time_text} ({deadline}) очікується виконання завдання «{title}»"
-    REMINDER_WEEK = "⏰ <b>Нагадування:</b>\nчерез тиждень ({deadline}) очікується виконання завдання «{title}»"
+    REMINDER_TOMORROW = (
+        "⏰ <b>Нагадування:</b>\n{time_text} ({deadline}) очікується виконання завдання «{title}»"
+    )
+    REMINDER_WEEK = (
+        "⏰ <b>Нагадування:</b>\nчерез тиждень ({deadline}) очікується виконання завдання «{title}»"
+    )
     REMINDER_24HOURS = "⏰ <b>Нагадування:</b>\nчерез 24 години ({deadline}) очікується виконання завдання «{title}»"
     REMINDER_DEFAULT = "⏰ <b>Нагадування:</b>\nзавдання «{title}» ({deadline})"
 

@@ -17,7 +17,7 @@ class CommandHandler:
         self.help_handler = HelpHandler()
         self.callback_handler = CallbackHandler(study_service, reminder_service)
         self.message_handler = UserMessageHandler(study_service, reminder_service)
-    
+
     def get_handlers(self):
         return [
             TgCommandHandler("start", self.start_handler.handle),
