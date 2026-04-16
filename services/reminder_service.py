@@ -170,11 +170,11 @@ class ReminderService:
             days_left = (deadline_date - datetime.now().date()).days
 
             if days_left == 0:
-                time_text = "сьогодні"
+                time_text = "Сьогодні"
             elif days_left == 1:
-                time_text = "завтра"
+                time_text = "Завтра"
             else:
-                time_text = f"через {days_left} днів"
+                time_text = f"Через {days_left} днів"
 
             deadline_str = deadline_date.strftime("%d.%m.%Y")
 

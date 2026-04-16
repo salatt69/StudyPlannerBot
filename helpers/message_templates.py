@@ -60,10 +60,10 @@ class MessageTemplates:
         "⏰ <b>Нагадування:</b>\n{time_text} ({deadline}) очікується виконання завдання «{title}»"
     )
     REMINDER_WEEK = (
-        "⏰ <b>Нагадування:</b>\nчерез тиждень ({deadline}) очікується виконання завдання «{title}»"
+        "⏰ <b>Нагадування:</b>\nЧерез тиждень ({deadline}) очікується виконання завдання «{title}»"
     )
-    REMINDER_24HOURS = "⏰ <b>Нагадування:</b>\nчерез 24 години ({deadline}) очікується виконання завдання «{title}»"
-    REMINDER_DEFAULT = "⏰ <b>Нагадування:</b>\nзавдання «{title}» ({deadline})"
+    REMINDER_24HOURS = "⏰ <b>Нагадування:</b>\nЧерез 24 години ({deadline}) очікується виконання завдання «{title}»"
+    REMINDER_DEFAULT = "⏰ <b>Нагадування:</b>\nЗавдання «{title}» ({deadline})"
 
     SELECT_DATE = "📅 Оберіть дату:"
 
