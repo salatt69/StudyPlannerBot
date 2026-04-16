@@ -56,13 +56,12 @@ class MessageTemplates:
     NO_REMINDERS = "🔔 У вас немає активних нагадувань."
     REMINDERS_LIST = "🔔 <b>Ваші нагадування:</b>\n\n{reminders}"
 
-    REMINDER_TOMORROW = (
+    REMINDER_TODAY_TOMORROW = (
         "⏰ <b>Нагадування:</b>\n{time_text} ({deadline}) очікується виконання завдання «{title}»"
     )
     REMINDER_WEEK = (
         "⏰ <b>Нагадування:</b>\nЧерез тиждень ({deadline}) очікується виконання завдання «{title}»"
     )
-    REMINDER_24HOURS = "⏰ <b>Нагадування:</b>\nЧерез 24 години ({deadline}) очікується виконання завдання «{title}»"
     REMINDER_DEFAULT = "⏰ <b>Нагадування:</b>\nЗавдання «{title}» ({deadline})"
 
     SELECT_DATE = "📅 Оберіть дату:"

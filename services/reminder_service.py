@@ -116,7 +116,7 @@ class ReminderService:
         task_id = task.task_id if hasattr(task, "task_id") else task.get("task_id")
         deadline = task.deadline if hasattr(task, "deadline") else task.get("deadline")
 
-        await self.set_reminder(task, plan, timedelta(days=1), "завтра")
+        await self.set_reminder(task, plan, timedelta(days=1), "сьогодні_завтра")
 
         if deadline:
             if hasattr(deadline, "date"):
@@ -126,9 +126,6 @@ class ReminderService:
 
             if days_until_deadline >= 7:
                 await self.set_reminder(task, plan, timedelta(days=7), "тиждень")
-
-            if days_until_deadline >= 1:
-                await self.set_reminder(task, plan, timedelta(hours=24), "24годин")
 
     def get_due_reminders(self) -> List[Dict[str, Any]]:
         due = []
@@ -179,13 +176,10 @@ class ReminderService:
             deadline_str = deadline_date.strftime("%d.%m.%Y")
 
             type_messages = {
-                "завтра": MessageTemplates.REMINDER_TOMORROW.format(
+                "сьогодні_завтра": MessageTemplates.REMINDER_TODAY_TOMORROW.format(
                     time_text=time_text, deadline=deadline_str, title=title
                 ),
                 "тиждень": MessageTemplates.REMINDER_WEEK.format(
-                    deadline=deadline_str, title=title
-                ),
-                "24годин": MessageTemplates.REMINDER_24HOURS.format(
                     deadline=deadline_str, title=title
                 ),
             }
