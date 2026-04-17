@@ -24,7 +24,7 @@ class CalendarKeyboard:
     def build(year: int, month: int, callback_prefix: str):
         keyboard = []
 
-        header = f"◀ {CalendarKeyboard.MONTH_NAMES[month-1]} {year}"
+        header = f"{CalendarKeyboard.MONTH_NAMES[month-1]} {year}"
         keyboard.append([InlineKeyboardButton(header, callback_data="noop")])
 
         days_row = [
