@@ -168,7 +168,7 @@ class CallbackHandler:
     ):
         query = update.callback_query
         user_id = update.effective_user.id
-        plans = self.study_service.get_plan(user_id)
+        plans = await self.study_service.get_plan(user_id)
 
         if not plans:
             await query.edit_message_text(
@@ -195,7 +195,7 @@ class CallbackHandler:
     ):
         query = update.callback_query
         user_id = update.effective_user.id
-        plan = self.study_service.get_plan_by_id(plan_id)
+        plan = await self.study_service.get_plan_by_id(plan_id)
 
         if not plan:
             await query.edit_message_text(
@@ -211,7 +211,7 @@ class CallbackHandler:
             )
             return
 
-        tasks = self.study_service.get_tasks(plan_id)
+        tasks = await self.study_service.get_tasks(plan_id)
         deadline_text = self.study_service.format_deadline(plan.deadline)
 
         if not tasks:
@@ -246,13 +246,13 @@ class CallbackHandler:
     ):
         query = update.callback_query
         user_id = update.effective_user.id
-        task = storage.get_task(task_id)
+        task = await storage.get_task(task_id)
 
         if not task:
             await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
             return
 
-        plan = self.study_service.get_plan_by_id(task.plan_id)
+        plan = await self.study_service.get_plan_by_id(task.plan_id)
 
         if not plan or plan.user_id != user_id:
             await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
@@ -290,7 +290,7 @@ class CallbackHandler:
     ):
         query = update.callback_query
 
-        task = storage.get_task(task_id)
+        task = await storage.get_task(task_id)
         if task is None:
             await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
             return
@@ -300,7 +300,7 @@ class CallbackHandler:
             return
 
         task.is_done = True
-        storage.update_task(task)
+        await storage.update_task(task)
 
         await self.reminder_service.cancel_reminder(task_id)
 
@@ -311,15 +311,15 @@ class CallbackHandler:
     ):
         query = update.callback_query
 
-        task = storage.get_task(task_id)
+        task = await storage.get_task(task_id)
         if task is None:
             await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
             return
 
         task.is_done = False
-        storage.update_task(task)
+        await storage.update_task(task)
 
-        plan = self.study_service.get_plan_by_id(task.plan_id)
+        plan = await self.study_service.get_plan_by_id(task.plan_id)
         if plan:
             task_dict = {
                 "task_id": task.task_id,
@@ -339,21 +339,21 @@ class CallbackHandler:
     ):
         query = update.callback_query
 
-        task = storage.get_task(task_id)
+        task = await storage.get_task(task_id)
         if task is None:
             await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
             return
 
         plan_id = task.plan_id
-        storage.delete_task(task_id)
+        await storage.delete_task(task_id)
         await self.reminder_service.cancel_reminder(task_id)
 
-        tasks = self.study_service.get_tasks(plan_id)
+        tasks = await self.study_service.get_tasks(plan_id)
         if tasks:
             latest_deadline = max(t.deadline for t in tasks if t.deadline)
-            storage.update_plan_deadline(plan_id, latest_deadline)
+            await storage.update_plan_deadline(plan_id, latest_deadline)
         else:
-            storage.update_plan_deadline(plan_id, None)
+            await storage.update_plan_deadline(plan_id, None)
 
         await self._show_plan_detail(update, context, plan_id)
 
@@ -362,16 +362,16 @@ class CallbackHandler:
     ):
         query = update.callback_query
 
-        plan = self.study_service.get_plan_by_id(plan_id)
+        plan = await self.study_service.get_plan_by_id(plan_id)
         if not plan:
             await query.edit_message_text(MessageTemplates.PLAN_NOT_FOUND)
             return
 
-        tasks = self.study_service.get_tasks(plan_id)
+        tasks = await self.study_service.get_tasks(plan_id)
         for task in tasks:
             await self.reminder_service.cancel_reminder(task.task_id)
 
-        storage.delete_plan(plan_id)
+        await storage.delete_plan(plan_id)
 
         await self._show_plans_list(update, context)
 
@@ -380,7 +380,7 @@ class CallbackHandler:
     ):
         query = update.callback_query
         user_id = update.effective_user.id
-        plans = self.study_service.get_plan(user_id)
+        plans = await self.study_service.get_plan(user_id)
 
         if not plans:
             await query.edit_message_text(
@@ -402,7 +402,7 @@ class CallbackHandler:
     ):
         query = update.callback_query
         context.user_data["selected_plan_id"] = plan_id
-        plan = self.study_service.get_plan_by_id(plan_id)
+        plan = await self.study_service.get_plan_by_id(plan_id)
 
         await query.edit_message_text(
             MessageTemplates.TASK_TITLE_PROMPT.format(subject=plan.subject),
@@ -480,12 +480,16 @@ class CallbackHandler:
             plan_id = context.user_data.get("selected_plan_id")
             title = context.user_data.get("task_title")
 
-            task = self.study_service.add_task(plan_id, title, selected_date)
-            plan = self.study_service.get_plan_by_id(plan_id)
+            task = await self.study_service.add_task(
+                plan_id, title, selected_date
+            )
+            plan = await self.study_service.get_plan_by_id(plan_id)
 
             if plan:
-                self.study_service.update_plan_deadline(plan_id, selected_date)
-                plan = self.study_service.get_plan_by_id(plan_id)
+                await self.study_service.update_plan_deadline(
+                    plan_id, selected_date
+                )
+                plan = await self.study_service.get_plan_by_id(plan_id)
 
                 task_dict = {
                     "task_id": task.task_id,

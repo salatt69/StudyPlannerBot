@@ -11,10 +11,10 @@ class ReminderService:
         self.storage = storage
         self.reminders = {}
         self.sent_reminders = set()
-        self._load_reminders()
+        asyncio.create_task(self._load_reminders())
 
-    def _load_reminders(self):
-        db_reminders = self.storage.get_all_reminders()
+    async def _load_reminders(self):
+        db_reminders = await self.storage.get_all_reminders()
         for rem in db_reminders:
             key = rem["key"]
             self.reminders[key] = {
@@ -56,7 +56,7 @@ class ReminderService:
             "delta": delta,
         }
 
-        self.storage.save_reminder(
+        await self.storage.save_reminder(
             task_id,
             user_id,
             title,
@@ -70,7 +70,7 @@ class ReminderService:
             if key.startswith(f"{task_id}_"):
                 del self.reminders[key]
                 self.sent_reminders.discard(key)
-        self.storage.delete_reminders_for_task(task_id)
+        await self.storage.delete_reminders_for_task(task_id)
 
     async def send_notification(
         self, user_id: int, text: str, parse_mode: str = None
@@ -183,7 +183,9 @@ class ReminderService:
     def _mark_sent(self, task_id: int, reminder_type: str):
         key = f"{task_id}_{reminder_type}"
         self.sent_reminders.add(key)
-        self.storage.mark_reminder_sent(task_id, reminder_type)
+        asyncio.create_task(
+            self.storage.mark_reminder_sent(task_id, reminder_type)
+        )
 
     async def check_and_send(self):
         due_reminders = self.get_due_reminders()

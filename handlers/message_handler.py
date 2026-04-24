@@ -18,7 +18,7 @@ class UserMessageHandler:
         awaiting = context.user_data.get("awaiting")
 
         if awaiting == "plan_subject":
-            existing = storage.get_plan_by_subject(user_id, text)
+            existing = await storage.get_plan_by_subject(user_id, text)
             if existing:
                 await update.message.reply_text(
                     MessageTemplates.PLAN_EXISTS.format(subject=text),
@@ -28,7 +28,7 @@ class UserMessageHandler:
                 return
 
             context.user_data["subject"] = text
-            plan = self.study_service.create_plan(user_id, text)
+            await self.study_service.create_plan(user_id, text)
             await update.message.reply_text(
                 MessageTemplates.PLAN_CREATED.format(subject=text),
                 reply_markup=MainMenuKeyboard.build(),
@@ -38,9 +38,9 @@ class UserMessageHandler:
 
         elif awaiting == "task_title":
             plan_id = context.user_data.get("selected_plan_id")
-            plan = self.study_service.get_plan_by_id(plan_id)
+            plan = await self.study_service.get_plan_by_id(plan_id)
 
-            existing = storage.get_task_by_title(plan_id, text)
+            existing = await storage.get_task_by_title(plan_id, text)
             if existing:
                 await update.message.reply_text(
                     MessageTemplates.TASK_EXISTS.format(
