@@ -106,12 +106,16 @@ class SQLiteStorage(StorageInterface):
         conn = self._get_conn()
         cursor = conn.cursor()
         deadline_str = deadline.isoformat() if deadline else None
-        cursor.execute(
-            "INSERT INTO plans (user_id, subject, deadline) VALUES (?, ?, ?)",
-            (user_id, subject, deadline_str),
-        )
-        conn.commit()
-        plan_id = cursor.lastrowid
+        try:
+            cursor.execute(
+                "INSERT INTO plans (user_id, subject, deadline) VALUES (?, ?, ?)",
+                (user_id, subject, deadline_str),
+            )
+            conn.commit()
+            plan_id = cursor.lastrowid
+        except sqlite3.Error as e:
+            conn.rollback()
+            raise e
         return Plan(
             plan_id=plan_id,
             user_id=user_id,
