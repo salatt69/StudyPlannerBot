@@ -85,7 +85,11 @@ class SQLiteStorage(StorageInterface):
         row = cursor.fetchone()
         if row is None:
             return None
-        return User(user_id=row["user_id"], username=row["username"], timezone=row["timezone"])
+        return User(
+            user_id=row["user_id"],
+            username=row["username"],
+            timezone=row["timezone"],
+        )
 
     def save_user(self, user_id: int, username: Optional[str]):
         conn = self._get_conn()
@@ -96,7 +100,9 @@ class SQLiteStorage(StorageInterface):
         )
         conn.commit()
 
-    def create_plan(self, user_id: int, subject: str, deadline: Optional[date]) -> Plan:
+    def create_plan(
+        self, user_id: int, subject: str, deadline: Optional[date]
+    ) -> Plan:
         conn = self._get_conn()
         cursor = conn.cursor()
         deadline_str = deadline.isoformat() if deadline else None
@@ -106,13 +112,24 @@ class SQLiteStorage(StorageInterface):
         )
         conn.commit()
         plan_id = cursor.lastrowid
-        return Plan(plan_id=plan_id, user_id=user_id, subject=subject, deadline=deadline, tasks=[])
+        return Plan(
+            plan_id=plan_id,
+            user_id=user_id,
+            subject=subject,
+            deadline=deadline,
+            tasks=[],
+        )
 
-    def update_plan_deadline(self, plan_id: int, deadline: Optional[date]) -> bool:
+    def update_plan_deadline(
+        self, plan_id: int, deadline: Optional[date]
+    ) -> bool:
         conn = self._get_conn()
         cursor = conn.cursor()
         deadline_str = deadline.isoformat() if deadline else None
-        cursor.execute("UPDATE plans SET deadline = ? WHERE plan_id = ?", (deadline_str, plan_id))
+        cursor.execute(
+            "UPDATE plans SET deadline = ? WHERE plan_id = ?",
+            (deadline_str, plan_id),
+        )
         conn.commit()
         return cursor.rowcount > 0
 
@@ -123,7 +140,11 @@ class SQLiteStorage(StorageInterface):
         row = cursor.fetchone()
         if row is None:
             return None
-        deadline = datetime.fromisoformat(row["deadline"]).date() if row["deadline"] else None
+        deadline = (
+            datetime.fromisoformat(row["deadline"]).date()
+            if row["deadline"]
+            else None
+        )
         task_ids = self._get_plan_task_ids(plan_id)
         return Plan(
             plan_id=row["plan_id"],
@@ -136,7 +157,9 @@ class SQLiteStorage(StorageInterface):
     def _get_plan_task_ids(self, plan_id: int) -> List[int]:
         conn = self._get_conn()
         cursor = conn.cursor()
-        cursor.execute("SELECT task_id FROM plan_tasks WHERE plan_id = ?", (plan_id,))
+        cursor.execute(
+            "SELECT task_id FROM plan_tasks WHERE plan_id = ?", (plan_id,)
+        )
         return [row["task_id"] for row in cursor.fetchall()]
 
     def get_user_plans(self, user_id: int) -> List[Plan]:
@@ -145,7 +168,11 @@ class SQLiteStorage(StorageInterface):
         cursor.execute("SELECT * FROM plans WHERE user_id = ?", (user_id,))
         plans = []
         for row in cursor.fetchall():
-            deadline = datetime.fromisoformat(row["deadline"]).date() if row["deadline"] else None
+            deadline = (
+                datetime.fromisoformat(row["deadline"]).date()
+                if row["deadline"]
+                else None
+            )
             task_ids = self._get_plan_task_ids(row["plan_id"])
             plans.append(
                 Plan(
@@ -158,7 +185,9 @@ class SQLiteStorage(StorageInterface):
             )
         return plans
 
-    def get_plan_by_subject(self, user_id: int, subject: str) -> Optional[Plan]:
+    def get_plan_by_subject(
+        self, user_id: int, subject: str
+    ) -> Optional[Plan]:
         conn = self._get_conn()
         cursor = conn.cursor()
         cursor.execute(
@@ -168,7 +197,11 @@ class SQLiteStorage(StorageInterface):
         row = cursor.fetchone()
         if row is None:
             return None
-        deadline = datetime.fromisoformat(row["deadline"]).date() if row["deadline"] else None
+        deadline = (
+            datetime.fromisoformat(row["deadline"]).date()
+            if row["deadline"]
+            else None
+        )
         task_ids = self._get_plan_task_ids(row["plan_id"])
         return Plan(
             plan_id=row["plan_id"],
@@ -182,7 +215,8 @@ class SQLiteStorage(StorageInterface):
         conn = self._get_conn()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT * FROM tasks WHERE plan_id = ? AND LOWER(title) = LOWER(?)", (plan_id, title)
+            "SELECT * FROM tasks WHERE plan_id = ? AND LOWER(title) = LOWER(?)",
+            (plan_id, title),
         )
         row = cursor.fetchone()
         if row is None:
@@ -200,11 +234,15 @@ class SQLiteStorage(StorageInterface):
         conn = self._get_conn()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT task_id FROM plan_tasks WHERE plan_id = ?", (plan_id,))
+        cursor.execute(
+            "SELECT task_id FROM plan_tasks WHERE plan_id = ?", (plan_id,)
+        )
         task_ids = [row["task_id"] for row in cursor.fetchall()]
 
         for task_id in task_ids:
-            cursor.execute("DELETE FROM reminders WHERE task_id = ?", (task_id,))
+            cursor.execute(
+                "DELETE FROM reminders WHERE task_id = ?", (task_id,)
+            )
             cursor.execute("DELETE FROM tasks WHERE task_id = ?", (task_id,))
 
         cursor.execute("DELETE FROM plan_tasks WHERE plan_id = ?", (plan_id,))
@@ -224,11 +262,18 @@ class SQLiteStorage(StorageInterface):
         task_id = cursor.lastrowid
 
         cursor.execute(
-            "INSERT INTO plan_tasks (plan_id, task_id) VALUES (?, ?)", (plan_id, task_id)
+            "INSERT INTO plan_tasks (plan_id, task_id) VALUES (?, ?)",
+            (plan_id, task_id),
         )
         conn.commit()
 
-        return Task(task_id=task_id, plan_id=plan_id, title=title, deadline=deadline, is_done=False)
+        return Task(
+            task_id=task_id,
+            plan_id=plan_id,
+            title=title,
+            deadline=deadline,
+            is_done=False,
+        )
 
     def get_task(self, task_id: int) -> Optional[Task]:
         conn = self._get_conn()
@@ -320,13 +365,24 @@ class SQLiteStorage(StorageInterface):
     ):
         conn = self._get_conn()
         cursor = conn.cursor()
-        deadline_str = deadline.isoformat() if hasattr(deadline, "isoformat") else deadline
+        deadline_str = (
+            deadline.isoformat()
+            if hasattr(deadline, "isoformat")
+            else deadline
+        )
         cursor.execute(
             """
             INSERT OR REPLACE INTO reminders (task_id, user_id, title, deadline, reminder_type, delta_seconds, sent)
             VALUES (?, ?, ?, ?, ?, ?, 0)
         """,
-            (task_id, user_id, title, deadline_str, reminder_type, delta_seconds),
+            (
+                task_id,
+                user_id,
+                title,
+                deadline_str,
+                reminder_type,
+                delta_seconds,
+            ),
         )
         conn.commit()
 

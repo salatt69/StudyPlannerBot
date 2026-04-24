@@ -14,11 +14,15 @@ class StorageInterface(ABC):
         pass
 
     @abstractmethod
-    def create_plan(self, user_id: int, subject: str, deadline: Optional[date]) -> Plan:
+    def create_plan(
+        self, user_id: int, subject: str, deadline: Optional[date]
+    ) -> Plan:
         pass
 
     @abstractmethod
-    def update_plan_deadline(self, plan_id: int, deadline: Optional[date]) -> bool:
+    def update_plan_deadline(
+        self, plan_id: int, deadline: Optional[date]
+    ) -> bool:
         pass
 
     @abstractmethod

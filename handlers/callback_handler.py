@@ -13,7 +13,9 @@ from helpers.message_templates import MessageTemplates
 
 
 class CallbackHandler:
-    def __init__(self, study_service: StudyService, reminder_service: ReminderService):
+    def __init__(
+        self, study_service: StudyService, reminder_service: ReminderService
+    ):
         self.study_service = study_service
         self.reminder_service = reminder_service
 
@@ -53,7 +55,9 @@ class CallbackHandler:
                     month = int(parts[-2])
                     day = int(parts[-1])
                     if 1 <= month <= 12 and 1 <= day <= 31:
-                        await self._select_date(update, context, year, month, day)
+                        await self._select_date(
+                            update, context, year, month, day
+                        )
                         return
                 except (ValueError, IndexError):
                     pass
@@ -98,22 +102,30 @@ class CallbackHandler:
             await self._show_task_deadline_input(update, context, plan_id)
             return
 
-    async def _back_to_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _back_to_menu(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         query = update.callback_query
         await query.edit_message_text(
             MessageTemplates.MAIN_MENU, reply_markup=MainMenuKeyboard.build()
         )
 
-    async def _cancel_date(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _cancel_date(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         query = update.callback_query
         context.user_data.clear()
         await query.edit_message_text(
             MessageTemplates.MAIN_MENU, reply_markup=MainMenuKeyboard.build()
         )
 
-    async def _handle_cal_today(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _handle_cal_today(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         today = datetime.now()
-        await self._select_date(update, context, today.year, today.month, today.day)
+        await self._select_date(
+            update, context, today.year, today.month, today.day
+        )
 
     async def _handle_calendar_nav(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, data: str
@@ -141,7 +153,9 @@ class CallbackHandler:
             ),
         )
 
-    async def _show_subject_input(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _show_subject_input(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         query = update.callback_query
         await query.edit_message_text(
             MessageTemplates.ENTER_PLAN_SUBJECT,
@@ -149,22 +163,31 @@ class CallbackHandler:
         )
         context.user_data["awaiting"] = "plan_subject"
 
-    async def _show_plans_list(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _show_plans_list(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         query = update.callback_query
         user_id = update.effective_user.id
         plans = self.study_service.get_plan(user_id)
 
         if not plans:
             await query.edit_message_text(
-                MessageTemplates.NO_PLANS, reply_markup=PlanKeyboard.back("back_to_menu")
+                MessageTemplates.NO_PLANS,
+                reply_markup=PlanKeyboard.back("back_to_menu"),
             )
             return
 
         plans_data = [
-            {"plan_id": p.plan_id, "subject": p.subject, "deadline": p.deadline} for p in plans
+            {
+                "plan_id": p.plan_id,
+                "subject": p.subject,
+                "deadline": p.deadline,
+            }
+            for p in plans
         ]
         await query.edit_message_text(
-            MessageTemplates.SELECT_PLAN, reply_markup=PlanKeyboard.plans_list(plans_data)
+            MessageTemplates.SELECT_PLAN,
+            reply_markup=PlanKeyboard.plans_list(plans_data),
         )
 
     async def _show_plan_detail(
@@ -176,13 +199,15 @@ class CallbackHandler:
 
         if not plan:
             await query.edit_message_text(
-                MessageTemplates.PLAN_NOT_FOUND, reply_markup=PlanKeyboard.back("back_to_plans")
+                MessageTemplates.PLAN_NOT_FOUND,
+                reply_markup=PlanKeyboard.back("back_to_plans"),
             )
             return
 
         if plan.user_id != user_id:
             await query.edit_message_text(
-                MessageTemplates.PLAN_NOT_FOUND, reply_markup=PlanKeyboard.back("back_to_menu")
+                MessageTemplates.PLAN_NOT_FOUND,
+                reply_markup=PlanKeyboard.back("back_to_menu"),
             )
             return
 
@@ -200,11 +225,18 @@ class CallbackHandler:
             return
 
         tasks_data = [
-            {"task_id": t.task_id, "title": t.title, "is_done": t.is_done, "plan_id": t.plan_id}
+            {
+                "task_id": t.task_id,
+                "title": t.title,
+                "is_done": t.is_done,
+                "plan_id": t.plan_id,
+            }
             for t in tasks
         ]
         await query.edit_message_text(
-            MessageTemplates.PLAN_DETAIL.format(subject=plan.subject, deadline=deadline_text),
+            MessageTemplates.PLAN_DETAIL.format(
+                subject=plan.subject, deadline=deadline_text
+            ),
             reply_markup=PlanKeyboard.plan_detail(plan_id, tasks_data),
             parse_mode="HTML",
         )
@@ -226,7 +258,9 @@ class CallbackHandler:
             await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
             return
 
-        deadline_text = task.deadline.strftime("%d.%m.%Y") if task.deadline else "Немає"
+        deadline_text = (
+            task.deadline.strftime("%d.%m.%Y") if task.deadline else "Немає"
+        )
 
         status_icon = "✅" if task.is_done else "⬜"
 
@@ -245,7 +279,9 @@ class CallbackHandler:
                 deadline=deadline_text,
                 subject=plan.subject if plan else "Невідомо",
             ),
-            reply_markup=TaskKeyboard.task_detail(task_dict, plan.subject if plan else ""),
+            reply_markup=TaskKeyboard.task_detail(
+                task_dict, plan.subject if plan else ""
+            ),
             parse_mode="HTML",
         )
 
@@ -292,11 +328,15 @@ class CallbackHandler:
                 "deadline": task.deadline,
                 "is_done": task.is_done,
             }
-            await self.reminder_service.schedule_task_reminders(task_dict, plan)
+            await self.reminder_service.schedule_task_reminders(
+                task_dict, plan
+            )
 
         await self._show_task_detail(update, context, task_id)
 
-    async def _delete_task(self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int):
+    async def _delete_task(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
+    ):
         query = update.callback_query
 
         task = storage.get_task(task_id)
@@ -305,7 +345,6 @@ class CallbackHandler:
             return
 
         plan_id = task.plan_id
-        task_title = task.title
         storage.delete_task(task_id)
         await self.reminder_service.cancel_reminder(task_id)
 
@@ -318,7 +357,9 @@ class CallbackHandler:
 
         await self._show_plan_detail(update, context, plan_id)
 
-    async def _delete_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: int):
+    async def _delete_plan(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: int
+    ):
         query = update.callback_query
 
         plan = self.study_service.get_plan_by_id(plan_id)
@@ -326,7 +367,6 @@ class CallbackHandler:
             await query.edit_message_text(MessageTemplates.PLAN_NOT_FOUND)
             return
 
-        plan_subject = plan.subject
         tasks = self.study_service.get_tasks(plan_id)
         for task in tasks:
             await self.reminder_service.cancel_reminder(task.task_id)
@@ -335,20 +375,26 @@ class CallbackHandler:
 
         await self._show_plans_list(update, context)
 
-    async def _show_plans_for_task(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _show_plans_for_task(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         query = update.callback_query
         user_id = update.effective_user.id
         plans = self.study_service.get_plan(user_id)
 
         if not plans:
             await query.edit_message_text(
-                MessageTemplates.NO_PLANS_FOR_TASK, reply_markup=PlanKeyboard.back("back_to_menu")
+                MessageTemplates.NO_PLANS_FOR_TASK,
+                reply_markup=PlanKeyboard.back("back_to_menu"),
             )
             return
 
-        plans_data = [{"plan_id": p.plan_id, "subject": p.subject} for p in plans]
+        plans_data = [
+            {"plan_id": p.plan_id, "subject": p.subject} for p in plans
+        ]
         await query.edit_message_text(
-            MessageTemplates.SELECT_PLAN, reply_markup=PlanKeyboard.for_adding_task(plans_data)
+            MessageTemplates.SELECT_PLAN,
+            reply_markup=PlanKeyboard.for_adding_task(plans_data),
         )
 
     async def _show_task_title_input(
@@ -377,23 +423,29 @@ class CallbackHandler:
         today = datetime.now()
         await query.edit_message_text(
             MessageTemplates.SELECT_TASK_DEADLINE.format(title=task_title),
-            reply_markup=CalendarKeyboard.build(today.year, today.month, "task_date_"),
+            reply_markup=CalendarKeyboard.build(
+                today.year, today.month, "task_date_"
+            ),
             parse_mode="HTML",
         )
 
-    async def _show_reminders(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _show_reminders(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         query = update.callback_query
         user_id = update.effective_user.id
         reminders = await self.reminder_service.list_reminders(user_id)
 
         if not reminders:
             await query.edit_message_text(
-                MessageTemplates.NO_REMINDERS, reply_markup=PlanKeyboard.back("back_to_menu")
+                MessageTemplates.NO_REMINDERS,
+                reply_markup=PlanKeyboard.back("back_to_menu"),
             )
             return
 
         reminders_text = "\n".join(
-            f"• <b>{rem['title']}</b> — {rem['days_left']}" for rem in reminders
+            f"• <b>{rem['title']}</b> — {rem['days_left']}"
+            for rem in reminders
         )
 
         await query.edit_message_text(
@@ -402,14 +454,23 @@ class CallbackHandler:
             parse_mode="HTML",
         )
 
-    async def _show_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _show_help(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ):
         query = update.callback_query
         await query.edit_message_text(
-            MessageTemplates.HELP, reply_markup=MainMenuKeyboard.build(), parse_mode="HTML"
+            MessageTemplates.HELP,
+            reply_markup=MainMenuKeyboard.build(),
+            parse_mode="HTML",
         )
 
     async def _select_date(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: int, month: int, day: int
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        year: int,
+        month: int,
+        day: int,
     ):
         query = update.callback_query
         selected_date = date(year, month, day)
@@ -439,7 +500,9 @@ class CallbackHandler:
                     "subject": plan.subject,
                     "deadline": plan.deadline,
                 }
-                await self.reminder_service.schedule_task_reminders(task_dict, plan_dict)
+                await self.reminder_service.schedule_task_reminders(
+                    task_dict, plan_dict
+                )
 
             await query.edit_message_text(
                 MessageTemplates.TASK_ADDED.format(

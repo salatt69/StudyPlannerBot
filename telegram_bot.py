@@ -62,7 +62,9 @@ if __name__ == "__main__":
 
     if sys.platform == "win32":
         try:
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+            asyncio.set_event_loop_policy(
+                asyncio.WindowsSelectorEventLoopPolicy()
+            )
         except Exception:
             pass
 

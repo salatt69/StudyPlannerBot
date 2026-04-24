@@ -14,27 +14,48 @@ class TaskKeyboard:
             keyboard.append(
                 [
                     InlineKeyboardButton(
-                        "↩️ Позначити як невиконане", callback_data=f"undone_{task_id}"
+                        "↩️ Позначити як невиконане",
+                        callback_data=f"undone_{task_id}",
                     )
                 ]
             )
         else:
             keyboard.append(
-                [InlineKeyboardButton("✅ Позначити як виконане", callback_data=f"done_{task_id}")]
+                [
+                    InlineKeyboardButton(
+                        "✅ Позначити як виконане",
+                        callback_data=f"done_{task_id}",
+                    )
+                ]
             )
 
         keyboard.append(
-            [InlineKeyboardButton("🗑️ Видалити завдання", callback_data=f"delete_task_{task_id}")]
+            [
+                InlineKeyboardButton(
+                    "🗑️ Видалити завдання",
+                    callback_data=f"delete_task_{task_id}",
+                )
+            ]
         )
-        keyboard.append([InlineKeyboardButton("🔙 До плану", callback_data=f"view_plan_{plan_id}")])
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    "🔙 До плану", callback_data=f"view_plan_{plan_id}"
+                )
+            ]
+        )
 
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
     def task_title_input(plan_subject: str, plan_id: int):
-        keyboard = [[InlineKeyboardButton("🔙 Назад", callback_data="cmd_add_task")]]
+        keyboard = [
+            [InlineKeyboardButton("🔙 Назад", callback_data="cmd_add_task")]
+        ]
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
     def confirm_back(callback: str = "back_to_menu"):
-        return InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Назад", callback_data=callback)]])
+        return InlineKeyboardMarkup(
+            [[InlineKeyboardButton("🔙 Назад", callback_data=callback)]]
+        )

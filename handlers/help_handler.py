@@ -7,5 +7,7 @@ from helpers.message_templates import MessageTemplates
 class HelpHandler:
     async def handle(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
-            MessageTemplates.HELP, reply_markup=MainMenuKeyboard.build(), parse_mode="HTML"
+            MessageTemplates.HELP,
+            reply_markup=MainMenuKeyboard.build(),
+            parse_mode="HTML",
         )

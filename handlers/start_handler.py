@@ -14,5 +14,7 @@ class StartHandler:
             storage.save_user(user.id, user.username)
 
         await update.message.reply_text(
-            MessageTemplates.WELCOME, reply_markup=MainMenuKeyboard.build(), parse_mode="HTML"
+            MessageTemplates.WELCOME,
+            reply_markup=MainMenuKeyboard.build(),
+            parse_mode="HTML",
         )

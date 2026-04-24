@@ -25,17 +25,21 @@ class MessageTemplates:
     MAIN_MENU = "📋 Головне меню:"
 
     PLAN_CREATED = "✅ План '<b>{subject}</b>' створено!"
-    PLAN_EXISTS = "❌ План з назвою '<b>{subject}</b>' вже існує!\n\nВведіть іншу назву:"
+    PLAN_EXISTS = (
+        "❌ План з назвою '<b>{subject}</b>' вже існує!\n\nВведіть іншу назву:"
+    )
     PLAN_NOT_FOUND = "❌ План не знайдено."
     PLAN_DELETED = "✅ План '<b>{subject}</b>' видалено."
     NO_PLANS = "📭 У вас немає навчальних планів."
     SELECT_PLAN = "📋 Оберіть план:"
-    PLAN_DETAIL = "📚 <b>{subject}</b>\n📅 Дедлайн: {deadline}\n\n📝 Оберіть завдання:"
-    PLAN_DETAIL_NO_TASKS = "📚 <b>{subject}</b>\n📅 Дедлайн: {deadline}\n\n📝 Завдання: немає"
-
-    TASK_ADDED = (
-        "✅ Завдання '<b>{title}</b>' додано до плану '<b>{subject}</b>'!\n\n📅 Дедлайн: {deadline}"
+    PLAN_DETAIL = (
+        "📚 <b>{subject}</b>\n📅 Дедлайн: {deadline}\n\n📝 Оберіть завдання:"
     )
+    PLAN_DETAIL_NO_TASKS = (
+        "📚 <b>{subject}</b>\n📅 Дедлайн: {deadline}\n\n📝 Завдання: немає"
+    )
+
+    TASK_ADDED = "✅ Завдання '<b>{title}</b>' додано до плану '<b>{subject}</b>'!\n\n📅 Дедлайн: {deadline}"
     TASK_DONE = "✅ Завдання '<b>{title}</b>' позначено як виконане!"
     TASK_UNDONE = "↩️ Завдання '<b>{title}</b>' позначено як невиконане."
     TASK_ALREADY_DONE = "ℹ️ Завдання '<b>{title}</b>' вже виконано."
@@ -45,24 +49,26 @@ class MessageTemplates:
     NO_TASKS = "📝 У цьому плані немає завдань."
 
     SELECT_TASK = "📝 Оберіть завдання:"
-    TASK_DETAIL_FORMAT = "{status} <b>{title}</b>\n\n📅 Дедлайн: {deadline}\n📚 План: {subject}"
+    TASK_DETAIL_FORMAT = (
+        "{status} <b>{title}</b>\n\n📅 Дедлайн: {deadline}\n📚 План: {subject}"
+    )
 
     ENTER_PLAN_SUBJECT = "📚 Введіть назву предмета:"
     SELECT_TASK_DEADLINE = "📅 Оберіть дедлайн:"
-    TASK_TITLE_PROMPT = "📚 План: <b>{subject}</b>\n\n📝 Введіть назву завдання:"
+    TASK_TITLE_PROMPT = (
+        "📚 План: <b>{subject}</b>\n\n📝 Введіть назву завдання:"
+    )
     TASK_DEADLINE_PROMPT = "📝 Завдання: <b>{title}</b>\n\n📅 Оберіть дедлайн:"
 
     NO_PLANS_FOR_TASK = "📭 У вас немає планів.\n\nСпочатку створіть план!"
     NO_REMINDERS = "🔔 У вас немає активних нагадувань."
     REMINDERS_LIST = "🔔 <b>Ваші нагадування:</b>\n\n{reminders}"
 
-    REMINDER_TODAY_TOMORROW = (
-        "⏰ <b>Нагадування:</b>\n{time_text} ({deadline}) очікується виконання завдання «{title}»"
+    REMINDER_TODAY_TOMORROW = "⏰ <b>Нагадування:</b>\n{time_text} ({deadline}) очікується виконання завдання «{title}»"
+    REMINDER_WEEK = "⏰ <b>Нагадування:</b>\nЧерез тиждень ({deadline}) очікується виконання завдання «{title}»"
+    REMINDER_DEFAULT = (
+        "⏰ <b>Нагадування:</b>\nЗавдання «{title}» ({deadline})"
     )
-    REMINDER_WEEK = (
-        "⏰ <b>Нагадування:</b>\nЧерез тиждень ({deadline}) очікується виконання завдання «{title}»"
-    )
-    REMINDER_DEFAULT = "⏰ <b>Нагадування:</b>\nЗавдання «{title}» ({deadline})"
 
     SELECT_DATE = "📅 Оберіть дату:"
 

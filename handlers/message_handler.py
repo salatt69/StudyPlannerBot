@@ -43,8 +43,12 @@ class UserMessageHandler:
             existing = storage.get_task_by_title(plan_id, text)
             if existing:
                 await update.message.reply_text(
-                    MessageTemplates.TASK_EXISTS.format(title=text, subject=plan.subject),
-                    reply_markup=TaskKeyboard.task_title_input(plan.subject, plan_id),
+                    MessageTemplates.TASK_EXISTS.format(
+                        title=text, subject=plan.subject
+                    ),
+                    reply_markup=TaskKeyboard.task_title_input(
+                        plan.subject, plan_id
+                    ),
                     parse_mode="HTML",
                 )
                 return
@@ -58,11 +62,14 @@ class UserMessageHandler:
             today = datetime.datetime.now()
             await update.message.reply_text(
                 MessageTemplates.TASK_DEADLINE_PROMPT.format(title=text),
-                reply_markup=CalendarKeyboard.build(today.year, today.month, "task_date_"),
+                reply_markup=CalendarKeyboard.build(
+                    today.year, today.month, "task_date_"
+                ),
                 parse_mode="HTML",
             )
 
         else:
             await update.message.reply_text(
-                MessageTemplates.MAIN_MENU, reply_markup=MainMenuKeyboard.build()
+                MessageTemplates.MAIN_MENU,
+                reply_markup=MainMenuKeyboard.build(),
             )

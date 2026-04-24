@@ -26,16 +26,26 @@ class ReminderService:
                 "delta": timedelta(seconds=rem["delta_seconds"]),
             }
 
-    async def set_reminder(self, task, plan, delta: timedelta, reminder_type: str):
-        task_id = task.task_id if hasattr(task, "task_id") else task.get("task_id")
+    async def set_reminder(
+        self, task, plan, delta: timedelta, reminder_type: str
+    ):
+        task_id = (
+            task.task_id if hasattr(task, "task_id") else task.get("task_id")
+        )
         reminder_key = f"{task_id}_{reminder_type}"
 
         if reminder_key in self.reminders:
             return
 
-        user_id = plan.user_id if hasattr(plan, "user_id") else plan.get("user_id")
+        user_id = (
+            plan.user_id if hasattr(plan, "user_id") else plan.get("user_id")
+        )
         title = task.title if hasattr(task, "title") else task.get("title")
-        deadline = task.deadline if hasattr(task, "deadline") else task.get("deadline")
+        deadline = (
+            task.deadline
+            if hasattr(task, "deadline")
+            else task.get("deadline")
+        )
 
         self.reminders[reminder_key] = {
             "task_id": task_id,
@@ -47,7 +57,12 @@ class ReminderService:
         }
 
         self.storage.save_reminder(
-            task_id, user_id, title, deadline, reminder_type, int(delta.total_seconds())
+            task_id,
+            user_id,
+            title,
+            deadline,
+            reminder_type,
+            int(delta.total_seconds()),
         )
 
     async def cancel_reminder(self, task_id: int):
@@ -57,9 +72,13 @@ class ReminderService:
                 self.sent_reminders.discard(key)
         self.storage.delete_reminders_for_task(task_id)
 
-    async def send_notification(self, user_id: int, text: str, parse_mode: str = None):
+    async def send_notification(
+        self, user_id: int, text: str, parse_mode: str = None
+    ):
         try:
-            await self.bot.send_message(chat_id=user_id, text=text, parse_mode=parse_mode)
+            await self.bot.send_message(
+                chat_id=user_id, text=text, parse_mode=parse_mode
+            )
         except Exception as e:
             print(f"Failed to send notification: {e}")
 
@@ -80,7 +99,10 @@ class ReminderService:
 
             days_left = (deadline_date - today).days
 
-            if task_id not in task_map or days_left < task_map[task_id]["days_num"]:
+            if (
+                task_id not in task_map
+                or days_left < task_map[task_id]["days_num"]
+            ):
                 if days_left < 0:
                     days_text = "Прострочено"
                 elif days_left == 0:
@@ -113,19 +135,28 @@ class ReminderService:
         return result
 
     async def schedule_task_reminders(self, task, plan):
-        task_id = task.task_id if hasattr(task, "task_id") else task.get("task_id")
-        deadline = task.deadline if hasattr(task, "deadline") else task.get("deadline")
+        deadline = (
+            task.deadline
+            if hasattr(task, "deadline")
+            else task.get("deadline")
+        )
 
-        await self.set_reminder(task, plan, timedelta(days=1), "сьогодні_завтра")
+        await self.set_reminder(
+            task, plan, timedelta(days=1), "сьогодні_завтра"
+        )
 
         if deadline:
             if hasattr(deadline, "date"):
-                days_until_deadline = (deadline.date() - datetime.now().date()).days
+                days_until_deadline = (
+                    deadline.date() - datetime.now().date()
+                ).days
             else:
                 days_until_deadline = (deadline - datetime.now().date()).days
 
             if days_until_deadline >= 7:
-                await self.set_reminder(task, plan, timedelta(days=7), "тиждень")
+                await self.set_reminder(
+                    task, plan, timedelta(days=7), "тиждень"
+                )
 
     def get_due_reminders(self) -> List[Dict[str, Any]]:
         due = []
@@ -163,7 +194,9 @@ class ReminderService:
             reminder_type = rem["reminder_type"]
             deadline = rem["deadline"]
 
-            deadline_date = deadline.date() if hasattr(deadline, "date") else deadline
+            deadline_date = (
+                deadline.date() if hasattr(deadline, "date") else deadline
+            )
             days_left = (deadline_date - datetime.now().date()).days
 
             if days_left == 0:
@@ -186,7 +219,9 @@ class ReminderService:
 
             text = type_messages.get(
                 reminder_type,
-                MessageTemplates.REMINDER_DEFAULT.format(title=title, deadline=deadline_str),
+                MessageTemplates.REMINDER_DEFAULT.format(
+                    title=title, deadline=deadline_str
+                ),
             )
 
             await self.send_notification(user_id, text, parse_mode="HTML")
