@@ -6,10 +6,6 @@ class StudyService:
     async def create_plan(
         self, user_id: int, subject: str, deadline: date = None
     ):
-        user = await storage.get_user(user_id)
-        if user is None:
-            await storage.save_user(user_id, None)
-
         return await storage.create_plan(user_id, subject, deadline)
 
     async def add_task(self, plan_id: int, title: str, deadline: date):

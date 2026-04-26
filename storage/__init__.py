@@ -359,6 +359,16 @@ class SQLiteStorage(StorageInterface):
         await conn.commit()
         return cursor.rowcount > 0
 
+    async def update_task_status(self, task_id: int, is_done: bool) -> bool:
+        conn = await self._get_conn()
+        cursor = await conn.cursor()
+        await cursor.execute(
+            "UPDATE tasks SET is_done = ? WHERE task_id = ?",
+            (int(is_done), task_id),
+        )
+        await conn.commit()
+        return cursor.rowcount > 0
+
     async def delete_task(self, task_id: int) -> bool:
         conn = await self._get_conn()
         cursor = await conn.cursor()

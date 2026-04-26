@@ -66,10 +66,10 @@ class ReminderService:
         )
 
     async def cancel_reminder(self, task_id: int):
-        for key in list(self.reminders.keys()):
-            if key.startswith(f"{task_id}_"):
-                del self.reminders[key]
-                self.sent_reminders.discard(key)
+        keys_to_remove = [k for k in self.reminders if k.startswith(f"{task_id}_")]
+        for key in keys_to_remove:
+            del self.reminders[key]
+            self.sent_reminders.discard(key)
         await self.storage.delete_reminders_for_task(task_id)
 
     async def send_notification(
@@ -91,48 +91,40 @@ class ReminderService:
                 continue
 
             task_id = rem["task_id"]
-            deadline = rem["deadline"]
-            if hasattr(deadline, "date"):
-                deadline_date = deadline.date()
-            else:
-                deadline_date = deadline
-
+            deadline_date = rem["deadline"].date() if hasattr(rem["deadline"], "date") else rem["deadline"]
             days_left = (deadline_date - today).days
 
             if (
                 task_id not in task_map
                 or days_left < task_map[task_id]["days_num"]
             ):
-                if days_left < 0:
-                    days_text = "Прострочено"
-                elif days_left == 0:
-                    days_text = "Сьогодні"
-                elif days_left == 1:
-                    days_text = "Завтра"
-                elif days_left <= 7:
-                    days_text = f"{days_left} днів"
-                elif days_left <= 30:
-                    weeks = days_left // 7
-                    days_text = f"{weeks} тижнів"
-                else:
-                    months = days_left // 30
-                    days_text = f"{months} місяців"
-
+                days_text = self._get_days_text(days_left)
                 task_map[task_id] = {
                     "task_id": task_id,
                     "title": rem["title"],
                     "days_left": days_text,
-                    "deadline": deadline_date.strftime("%d.%m.%Y")
-                    if hasattr(deadline_date, "strftime")
-                    else str(deadline_date),
+                    "deadline": deadline_date.strftime("%d.%m.%Y"),
                     "days_num": days_left,
                 }
 
-        result = list(task_map.values())
-        result.sort(key=lambda x: x["days_num"])
+        result = sorted(task_map.values(), key=lambda x: x["days_num"])
         for item in result:
             del item["days_num"]
         return result
+
+    def _get_days_text(self, days_left: int) -> str:
+        if days_left < 0:
+            return "Прострочено"
+        elif days_left == 0:
+            return "Сьогодні"
+        elif days_left == 1:
+            return "Завтра"
+        elif days_left <= 7:
+            return f"{days_left} днів"
+        elif days_left <= 30:
+            return f"{days_left // 7} тижнів"
+        else:
+            return f"{days_left // 30} місяців"
 
     async def schedule_task_reminders(self, task, plan):
         deadline = (
@@ -166,12 +158,7 @@ class ReminderService:
             if key in self.sent_reminders:
                 continue
 
-            deadline = rem["deadline"]
-            if hasattr(deadline, "date"):
-                deadline_date = deadline.date()
-            else:
-                deadline_date = deadline
-
+            deadline_date = rem["deadline"].date() if hasattr(rem["deadline"], "date") else rem["deadline"]
             reminder_time = deadline_date - rem["delta"]
 
             if reminder_time <= now.date():
@@ -194,20 +181,10 @@ class ReminderService:
             user_id = rem["user_id"]
             title = rem["title"]
             reminder_type = rem["reminder_type"]
-            deadline = rem["deadline"]
-
-            deadline_date = (
-                deadline.date() if hasattr(deadline, "date") else deadline
-            )
+            deadline_date = rem["deadline"].date() if hasattr(rem["deadline"], "date") else rem["deadline"]
             days_left = (deadline_date - datetime.now().date()).days
 
-            if days_left == 0:
-                time_text = "Сьогодні"
-            elif days_left == 1:
-                time_text = "Завтра"
-            else:
-                time_text = f"Через {days_left} днів"
-
+            time_text = self._get_time_text(days_left)
             deadline_str = deadline_date.strftime("%d.%m.%Y")
 
             type_messages = {
@@ -227,6 +204,14 @@ class ReminderService:
             )
 
             await self.send_notification(user_id, text, parse_mode="HTML")
+
+    def _get_time_text(self, days_left: int) -> str:
+        if days_left == 0:
+            return "Сьогодні"
+        elif days_left == 1:
+            return "Завтра"
+        else:
+            return f"Через {days_left} днів"
 
     async def start_scheduler(self):
         while True:

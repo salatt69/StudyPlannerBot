@@ -56,6 +56,10 @@ class StorageInterface(ABC):
         pass
 
     @abstractmethod
+    async def update_task_status(self, task_id: int, is_done: bool) -> bool:
+        pass
+
+    @abstractmethod
     async def delete_task(self, task_id: int) -> bool:
         pass
 

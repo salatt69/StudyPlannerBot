@@ -336,12 +336,14 @@ class CallbackHandler:
             await self._show_task_detail(update, context, task_id)
             return
 
-        await self._set_task_status(update, context, task_id, True)
+        await storage.update_task_status(task_id, True)
+        await self._show_task_detail(update, context, task_id)
 
     async def _mark_task_undone(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
     ):
-        await self._set_task_status(update, context, task_id, False)
+        await storage.update_task_status(task_id, False)
+        await self._show_task_detail(update, context, task_id)
 
     async def _delete_task(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
@@ -503,7 +505,6 @@ class CallbackHandler:
                 await self.study_service.update_plan_deadline(
                     plan_id, selected_date
                 )
-                plan = await self.study_service.get_plan_by_id(plan_id)
 
                 task_dict = self._task_to_dict(task)
                 plan_dict = self._plan_to_dict(plan)
