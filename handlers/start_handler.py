@@ -6,7 +6,15 @@ from helpers.message_templates import MessageTemplates
 
 
 class StartHandler:
+    """Handler for /start command."""
+
     async def handle(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handles /start command.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         user = update.effective_user
         db_user = await storage.get_user(user.id)
 

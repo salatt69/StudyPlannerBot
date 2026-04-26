@@ -6,7 +6,14 @@ from storage.base import StorageInterface
 
 
 class SQLiteStorage(StorageInterface):
+    """SQLite storage implementation."""
+
     def __init__(self, db_path: str):
+        """Initializes the storage.
+
+        Args:
+            db_path: Path to the database file.
+        """
         if db_path.startswith("sqlite+aiosqlite:///"):
             db_path = db_path.replace("sqlite+aiosqlite:///", "")
 
@@ -14,6 +21,11 @@ class SQLiteStorage(StorageInterface):
         self._conn: Optional[aiosqlite.Connection] = None
 
     async def _get_conn(self) -> aiosqlite.Connection:
+        """Gets a connection to the database.
+
+        Returns:
+            Database connection.
+        """
         if self._conn is None:
             self._conn = await aiosqlite.connect(self.db_path)
             self._conn.row_factory = aiosqlite.Row
@@ -21,6 +33,7 @@ class SQLiteStorage(StorageInterface):
         return self._conn
 
     async def _init_db(self):
+        """Initializes the database structure."""
         conn = self._conn
         cursor = await conn.cursor()
 
@@ -89,6 +102,14 @@ class SQLiteStorage(StorageInterface):
         await conn.commit()
 
     async def get_user(self, user_id: int) -> Optional[User]:
+        """Gets a user by ID.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            User object or None.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -104,6 +125,12 @@ class SQLiteStorage(StorageInterface):
         )
 
     async def save_user(self, user_id: int, username: Optional[str]):
+        """Saves or updates a user.
+
+        Args:
+            user_id: User ID.
+            username: Username.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -116,6 +143,16 @@ class SQLiteStorage(StorageInterface):
     async def create_plan(
         self, user_id: int, subject: str, deadline: Optional[date]
     ) -> Plan:
+        """Creates a new plan.
+
+        Args:
+            user_id: User ID.
+            subject: Subject name.
+            deadline: Plan deadline.
+
+        Returns:
+            The created plan.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         deadline_str = deadline.isoformat() if deadline else None
@@ -141,6 +178,15 @@ class SQLiteStorage(StorageInterface):
     async def update_plan_deadline(
         self, plan_id: int, deadline: Optional[date]
     ) -> bool:
+        """Updates the plan deadline.
+
+        Args:
+            plan_id: Plan ID.
+            deadline: New deadline.
+
+        Returns:
+            True if updated.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         deadline_str = deadline.isoformat() if deadline else None
@@ -152,6 +198,14 @@ class SQLiteStorage(StorageInterface):
         return cursor.rowcount > 0
 
     async def get_plan(self, plan_id: int) -> Optional[Plan]:
+        """Gets a plan by ID.
+
+        Args:
+            plan_id: Plan ID.
+
+        Returns:
+            Plan or None.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -175,6 +229,14 @@ class SQLiteStorage(StorageInterface):
         )
 
     async def _get_plan_task_ids(self, plan_id: int) -> List[int]:
+        """Gets all task IDs for a plan.
+
+        Args:
+            plan_id: Plan ID.
+
+        Returns:
+            List of task IDs.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -184,6 +246,14 @@ class SQLiteStorage(StorageInterface):
         return [row["task_id"] for row in rows]
 
     async def get_user_plans(self, user_id: int) -> List[Plan]:
+        """Gets all plans for a user.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            List of plans.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -211,6 +281,15 @@ class SQLiteStorage(StorageInterface):
     async def get_plan_by_subject(
         self, user_id: int, subject: str
     ) -> Optional[Plan]:
+        """Gets a plan by subject name.
+
+        Args:
+            user_id: User ID.
+            subject: Subject name.
+
+        Returns:
+            Plan or None.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -238,6 +317,15 @@ class SQLiteStorage(StorageInterface):
     async def get_task_by_title(
         self, plan_id: int, title: str
     ) -> Optional[Task]:
+        """Gets a task by title.
+
+        Args:
+            plan_id: Plan ID.
+            title: Task title.
+
+        Returns:
+            Task or None.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -258,6 +346,14 @@ class SQLiteStorage(StorageInterface):
         )
 
     async def delete_plan(self, plan_id: int) -> bool:
+        """Deletes a plan and all its tasks.
+
+        Args:
+            plan_id: Plan ID.
+
+        Returns:
+            True if deleted.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
 
@@ -285,6 +381,16 @@ class SQLiteStorage(StorageInterface):
     async def create_task(
         self, plan_id: int, title: str, deadline: date
     ) -> Task:
+        """Creates a new task.
+
+        Args:
+            plan_id: Plan ID.
+            title: Task title.
+            deadline: Deadline.
+
+        Returns:
+            The created task.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         deadline_str = deadline.isoformat()
@@ -310,6 +416,14 @@ class SQLiteStorage(StorageInterface):
         )
 
     async def get_task(self, task_id: int) -> Optional[Task]:
+        """Gets a task by ID.
+
+        Args:
+            task_id: Task ID.
+
+        Returns:
+            Task or None.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -328,6 +442,14 @@ class SQLiteStorage(StorageInterface):
         )
 
     async def get_tasks_by_plan(self, plan_id: int) -> List[Task]:
+        """Gets all tasks for a plan.
+
+        Args:
+            plan_id: Plan ID.
+
+        Returns:
+            List of tasks.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -348,6 +470,14 @@ class SQLiteStorage(StorageInterface):
         return tasks
 
     async def update_task(self, task: Task) -> bool:
+        """Updates a task.
+
+        Args:
+            task: Task object.
+
+        Returns:
+            True if updated.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         deadline_str = task.deadline.isoformat() if task.deadline else None
@@ -360,6 +490,15 @@ class SQLiteStorage(StorageInterface):
         return cursor.rowcount > 0
 
     async def update_task_status(self, task_id: int, is_done: bool) -> bool:
+        """Updates the task completion status.
+
+        Args:
+            task_id: Task ID.
+            is_done: Completion status.
+
+        Returns:
+            True if updated.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -370,6 +509,14 @@ class SQLiteStorage(StorageInterface):
         return cursor.rowcount > 0
 
     async def delete_task(self, task_id: int) -> bool:
+        """Deletes a task.
+
+        Args:
+            task_id: Task ID.
+
+        Returns:
+            True if deleted.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -383,6 +530,14 @@ class SQLiteStorage(StorageInterface):
         return cursor.rowcount > 0
 
     async def get_all_user_tasks(self, user_id: int) -> List[Task]:
+        """Gets all tasks for a user.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            List of tasks.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -416,6 +571,16 @@ class SQLiteStorage(StorageInterface):
         reminder_type: str,
         delta_seconds: int,
     ):
+        """Saves a reminder.
+
+        Args:
+            task_id: Task ID.
+            user_id: User ID.
+            title: Task title.
+            deadline: Deadline.
+            reminder_type: Reminder type.
+            delta_seconds: Time until deadline in seconds.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         deadline_str = (
@@ -442,6 +607,11 @@ class SQLiteStorage(StorageInterface):
         await conn.commit()
 
     async def delete_reminders_for_task(self, task_id: int):
+        """Deletes all reminders for a task.
+
+        Args:
+            task_id: Task ID.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -450,6 +620,11 @@ class SQLiteStorage(StorageInterface):
         await conn.commit()
 
     async def get_all_reminders(self) -> List[dict]:
+        """Gets all unsent reminders.
+
+        Returns:
+            List of dicts with reminder data.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute("SELECT * FROM reminders WHERE sent = 0")
@@ -472,6 +647,12 @@ class SQLiteStorage(StorageInterface):
         return reminders
 
     async def mark_reminder_sent(self, task_id: int, reminder_type: str):
+        """Marks a reminder as sent.
+
+        Args:
+            task_id: Task ID.
+            reminder_type: Reminder type.
+        """
         conn = await self._get_conn()
         cursor = await conn.cursor()
         await cursor.execute(
@@ -483,6 +664,11 @@ class SQLiteStorage(StorageInterface):
 
 
 def get_storage():
+    """Creates a storage instance.
+
+    Returns:
+        SQLiteStorage instance.
+    """
     from config import config
 
     db_path = config.DATABASE_URL

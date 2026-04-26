@@ -9,7 +9,12 @@ import asyncio
 
 
 class TelegramBot:
+    """
+    Initializes and manages bot operation, services, and handlers.
+    """
+
     def __init__(self):
+        """Initializes the bot."""
         self.study_service = StudyService()
         self.reminder_service = None
         self.command_handler = None
@@ -17,6 +22,11 @@ class TelegramBot:
         self.bot = None
 
     async def setup(self):
+        """
+        Sets up bot, services, and handlers.
+
+        Initializes Telegram bot, creates services, and registers handlers.
+        """
         self.bot = Bot(token=config.TOKEN)
 
         self.reminder_service = ReminderService(self.bot, storage)
@@ -40,6 +50,11 @@ class TelegramBot:
         await self.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
 
     async def start(self):
+        """
+        Starts the bot.
+
+        Initializes bot, starts reminder scheduler, and begins polling updates.
+        """
         await self.setup()
         print("Bot started...")
 

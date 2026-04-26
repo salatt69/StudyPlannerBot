@@ -3,10 +3,21 @@ from typing import List, Union
 
 
 class PlanKeyboard:
+    """Keyboards for working with plans."""
+
     @staticmethod
     def plans_list(
         plans: List[Union[dict, object]], back_callback: str = "back_to_menu"
-    ):
+    ) -> InlineKeyboardMarkup:
+        """Builds the plan list keyboard.
+
+        Args:
+            plans: List of plans.
+            back_callback: Callback for Back button.
+
+        Returns:
+            Plan list keyboard.
+        """
         keyboard = []
         for plan in plans:
             subject = (
@@ -32,7 +43,17 @@ class PlanKeyboard:
         plan_id: int,
         tasks: List[Union[dict, object]],
         back_callback: str = "back_to_plans",
-    ):
+    ) -> InlineKeyboardMarkup:
+        """Builds the plan detail keyboard.
+
+        Args:
+            plan_id: Plan ID.
+            tasks: List of tasks.
+            back_callback: Callback for Back button.
+
+        Returns:
+            Plan detail keyboard.
+        """
         keyboard = []
         for task in tasks:
             is_done = (
@@ -66,7 +87,15 @@ class PlanKeyboard:
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
-    def plan_detail_no_tasks(plan_id: int):
+    def plan_detail_no_tasks(plan_id: int) -> InlineKeyboardMarkup:
+        """Builds the plan detail keyboard without tasks.
+
+        Args:
+            plan_id: Plan ID.
+
+        Returns:
+            Plan detail keyboard.
+        """
         keyboard = [
             [
                 InlineKeyboardButton(
@@ -82,7 +111,15 @@ class PlanKeyboard:
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
-    def for_adding_task(plans: List[Union[dict, object]]):
+    def for_adding_task(plans: List[Union[dict, object]]) -> InlineKeyboardMarkup:
+        """Builds the plan selection keyboard for adding a task.
+
+        Args:
+            plans: List of plans.
+
+        Returns:
+            Plan selection keyboard.
+        """
         keyboard = []
         for plan in plans:
             subject = (
@@ -104,7 +141,15 @@ class PlanKeyboard:
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
-    def back(back_callback: str = "back_to_menu"):
+    def back(back_callback: str = "back_to_menu") -> InlineKeyboardMarkup:
+        """Builds a keyboard with a single Back button.
+
+        Args:
+            back_callback: Callback for Back button.
+
+        Returns:
+            Keyboard with Back button.
+        """
         return InlineKeyboardMarkup(
             [[InlineKeyboardButton("🔙 Назад", callback_data=back_callback)]]
         )

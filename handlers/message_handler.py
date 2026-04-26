@@ -8,11 +8,25 @@ from helpers.message_templates import MessageTemplates
 
 
 class UserMessageHandler:
+    """Handler for user text input based on current awaiting state."""
+
     def __init__(self, study_service, reminder_service):
+        """Initializes the handler.
+
+        Args:
+            study_service: Service for working with plans.
+            reminder_service: Service for working with reminders.
+        """
         self.study_service = study_service
         self.reminder_service = reminder_service
 
     async def handle(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handles text message from user.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         user_id = update.effective_user.id
         text = update.message.text
         awaiting = context.user_data.get("awaiting")

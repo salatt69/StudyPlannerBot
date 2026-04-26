@@ -2,6 +2,11 @@ import asyncio
 
 
 async def main():
+    """
+    Main async function to start the bot.
+
+    Starts the Telegram bot and handles shutdown signals.
+    """
     from telegram_bot import TelegramBot
 
     bot = TelegramBot()

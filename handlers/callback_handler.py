@@ -13,14 +13,30 @@ from helpers.message_templates import MessageTemplates
 
 
 class CallbackHandler:
-    def __init__(
-        self, study_service: StudyService, reminder_service: ReminderService
-    ):
+    """Callback request handler from inline keyboards."""
+
+    def __init__(self, study_service: StudyService, reminder_service: ReminderService):
+        """Initializes the handler.
+
+        Args:
+            study_service: Service for working with plans.
+            reminder_service: Service for working with reminders.
+        """
         self.study_service = study_service
         self.reminder_service = reminder_service
 
     @staticmethod
     def _parse_id(data: str, prefix: str, index: int) -> int | None:
+        """Parses ID from callback data string.
+
+        Args:
+            data: Callback data string.
+            prefix: Prefix to search for.
+            index: Index to extract number from.
+
+        Returns:
+            ID or None if not found.
+        """
         if data.startswith(prefix):
             try:
                 return int(data.split("_")[index])
@@ -30,6 +46,14 @@ class CallbackHandler:
 
     @staticmethod
     def _parse_calendar_date(data: str) -> tuple[int, int, int] | None:
+        """Parses date from calendar callback string.
+
+        Args:
+            data: Callback data string.
+
+        Returns:
+            Tuple (year, month, day) or None.
+        """
         if "_" not in data:
             return None
         parts = data.split("_")
@@ -49,6 +73,15 @@ class CallbackHandler:
         update: Update,
         task_id: int,
     ) -> tuple[Update, int] | None:
+        """Gets a task or shows error.
+
+        Args:
+            update: Update object from Telegram.
+            task_id: Task ID.
+
+        Returns:
+            Task or None.
+        """
         query = update.callback_query
         task = await storage.get_task(task_id)
         if task is None:
@@ -58,6 +91,14 @@ class CallbackHandler:
 
     @staticmethod
     def _task_to_dict(task) -> dict:
+        """Converts task object to dictionary.
+
+        Args:
+            task: Task object.
+
+        Returns:
+            Dictionary with task data.
+        """
         return {
             "task_id": task.task_id,
             "plan_id": task.plan_id,
@@ -68,6 +109,14 @@ class CallbackHandler:
 
     @staticmethod
     def _plan_to_dict(plan) -> dict:
+        """Converts plan object to dictionary.
+
+        Args:
+            plan: Plan object.
+
+        Returns:
+            Dictionary with plan data.
+        """
         return {
             "plan_id": plan.plan_id,
             "user_id": plan.user_id,
@@ -76,6 +125,12 @@ class CallbackHandler:
         }
 
     async def handle(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Main handler for all callback requests.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         query = update.callback_query
         await query.answer()
 
@@ -142,11 +197,23 @@ class CallbackHandler:
     async def _back_to_menu(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Returns to main menu (preserves data).
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         await self._return_to_main_menu(update, context, clear_data=False)
 
     async def _cancel_date(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Cancels date selection (clears data).
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         await self._return_to_main_menu(update, context, clear_data=True)
 
     async def _return_to_main_menu(
@@ -155,6 +222,13 @@ class CallbackHandler:
         context: ContextTypes.DEFAULT_TYPE,
         clear_data: bool = False,
     ):
+        """Returns to main menu.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            clear_data: Whether to clear user data.
+        """
         query = update.callback_query
         if clear_data:
             context.user_data.clear()
@@ -165,6 +239,12 @@ class CallbackHandler:
     async def _handle_cal_today(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Handles "Today" button press in calendar.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         today = datetime.now()
         await self._select_date(
             update, context, today.year, today.month, today.day
@@ -173,6 +253,13 @@ class CallbackHandler:
     async def _handle_calendar_nav(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, data: str
     ):
+        """Handles calendar month navigation.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            data: Callback data.
+        """
         query = update.callback_query
         parts = data.split("_")
         year = int(parts[-2])
@@ -199,6 +286,12 @@ class CallbackHandler:
     async def _show_subject_input(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Shows form for entering plan subject.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         query = update.callback_query
         await query.edit_message_text(
             MessageTemplates.ENTER_PLAN_SUBJECT,
@@ -209,6 +302,12 @@ class CallbackHandler:
     async def _show_plans_list(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Shows list of user's plans.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         query = update.callback_query
         user_id = update.effective_user.id
         plans = await self.study_service.get_plan(user_id)
@@ -236,6 +335,13 @@ class CallbackHandler:
     async def _show_plan_detail(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: int
     ):
+        """Shows plan details with task list.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            plan_id: Plan ID.
+        """
         query = update.callback_query
         user_id = update.effective_user.id
         plan = await self.study_service.get_plan_by_id(plan_id)
@@ -287,6 +393,13 @@ class CallbackHandler:
     async def _show_task_detail(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
     ):
+        """Shows task details.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            task_id: Task ID.
+        """
         query = update.callback_query
         user_id = update.effective_user.id
         task = await storage.get_task(task_id)
@@ -325,6 +438,13 @@ class CallbackHandler:
     async def _mark_task_done(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
     ):
+        """Marks task as done.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            task_id: Task ID.
+        """
         task = await storage.get_task(task_id)
         if task is None:
             await update.callback_query.edit_message_text(
@@ -342,12 +462,26 @@ class CallbackHandler:
     async def _mark_task_undone(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
     ):
+        """Marks task as not done.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            task_id: Task ID.
+        """
         await storage.update_task_status(task_id, False)
         await self._show_task_detail(update, context, task_id)
 
     async def _delete_task(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
     ):
+        """Deletes a task.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            task_id: Task ID.
+        """
         query = update.callback_query
 
         task = await storage.get_task(task_id)
@@ -371,6 +505,13 @@ class CallbackHandler:
     async def _delete_plan(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: int
     ):
+        """Deletes a plan with all tasks.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            plan_id: Plan ID.
+        """
         query = update.callback_query
         user_id = update.effective_user.id
 
@@ -394,6 +535,12 @@ class CallbackHandler:
     async def _show_plans_for_task(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Shows list of plans for adding a task.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         query = update.callback_query
         user_id = update.effective_user.id
         plans = await self.study_service.get_plan(user_id)
@@ -416,6 +563,13 @@ class CallbackHandler:
     async def _show_task_title_input(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: int
     ):
+        """Shows form for entering task title.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            plan_id: Plan ID.
+        """
         query = update.callback_query
         context.user_data["selected_plan_id"] = plan_id
         plan = await self.study_service.get_plan_by_id(plan_id)
@@ -430,6 +584,13 @@ class CallbackHandler:
     async def _show_task_deadline_input(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: int
     ):
+        """Shows calendar for task deadline selection.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            plan_id: Plan ID.
+        """
         query = update.callback_query
         task_title = context.user_data.get("task_title", "")
         context.user_data["selected_plan_id"] = plan_id
@@ -448,6 +609,12 @@ class CallbackHandler:
     async def _show_reminders(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Shows list of user's active reminders.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         query = update.callback_query
         user_id = update.effective_user.id
         reminders = await self.reminder_service.list_reminders(user_id)
@@ -473,6 +640,12 @@ class CallbackHandler:
     async def _show_help(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        """Shows help to user.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+        """
         query = update.callback_query
         await query.edit_message_text(
             MessageTemplates.HELP,
@@ -488,6 +661,15 @@ class CallbackHandler:
         month: int,
         day: int,
     ):
+        """Handles date selection from calendar.
+
+        Args:
+            update: Update object from Telegram.
+            context: Bot context.
+            year: Year.
+            month: Month.
+            day: Day.
+        """
         query = update.callback_query
         selected_date = date(year, month, day)
         awaiting = context.user_data.get("awaiting")

@@ -2,8 +2,15 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class MainMenuKeyboard:
+    """Main menu keyboard builder."""
+
     @staticmethod
-    def build():
+    def build() -> InlineKeyboardMarkup:
+        """Builds the main menu keyboard.
+
+        Returns:
+            Keyboard with buttons: New plan, Add task, My plans, Reminders.
+        """
         keyboard = [
             [
                 InlineKeyboardButton(

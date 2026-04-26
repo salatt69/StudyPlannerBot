@@ -4,6 +4,8 @@ import calendar
 
 
 class CalendarKeyboard:
+    """Calendar keyboard for date selection."""
+
     MONTH_NAMES = [
         "Січень",
         "Лютий",
@@ -21,7 +23,17 @@ class CalendarKeyboard:
     DAY_NAMES = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"]
 
     @staticmethod
-    def build(year: int, month: int, callback_prefix: str):
+    def build(year: int, month: int, callback_prefix: str) -> InlineKeyboardMarkup:
+        """Builds the calendar keyboard for the specified month.
+
+        Args:
+            year: Year.
+            month: Month (1-12).
+            callback_prefix: Prefix for callback data.
+
+        Returns:
+            Calendar keyboard.
+        """
         keyboard = []
 
         header = f"{CalendarKeyboard.MONTH_NAMES[month - 1]} {year}"
@@ -70,6 +82,14 @@ class CalendarKeyboard:
         return InlineKeyboardMarkup(keyboard)
 
     @staticmethod
-    def build_current_month(prefix: str = "date_"):
+    def build_current_month(prefix: str = "date_") -> InlineKeyboardMarkup:
+        """Builds the calendar keyboard for the current month.
+
+        Args:
+            prefix: Prefix for callback data.
+
+        Returns:
+            Current month calendar keyboard.
+        """
         today = datetime.now()
         return CalendarKeyboard.build(today.year, today.month, prefix)
