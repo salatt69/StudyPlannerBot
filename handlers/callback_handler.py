@@ -19,6 +19,62 @@ class CallbackHandler:
         self.study_service = study_service
         self.reminder_service = reminder_service
 
+    @staticmethod
+    def _parse_id(data: str, prefix: str, index: int) -> int | None:
+        if data.startswith(prefix):
+            try:
+                return int(data.split("_")[index])
+            except (ValueError, IndexError):
+                return None
+        return None
+
+    @staticmethod
+    def _parse_calendar_date(data: str) -> tuple[int, int, int] | None:
+        if "_" not in data:
+            return None
+        parts = data.split("_")
+        if len(parts) >= 4:
+            try:
+                year = int(parts[-3])
+                month = int(parts[-2])
+                day = int(parts[-1])
+                if 1 <= month <= 12 and 1 <= day <= 31:
+                    return year, month, day
+            except (ValueError, IndexError):
+                pass
+        return None
+
+    async def _get_task_or_reply(
+        self,
+        update: Update,
+        task_id: int,
+    ) -> tuple[Update, int] | None:
+        query = update.callback_query
+        task = await storage.get_task(task_id)
+        if task is None:
+            await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
+            return None
+        return task
+
+    @staticmethod
+    def _task_to_dict(task) -> dict:
+        return {
+            "task_id": task.task_id,
+            "plan_id": task.plan_id,
+            "title": task.title,
+            "deadline": task.deadline,
+            "is_done": task.is_done,
+        }
+
+    @staticmethod
+    def _plan_to_dict(plan) -> dict:
+        return {
+            "plan_id": plan.plan_id,
+            "user_id": plan.user_id,
+            "subject": plan.subject,
+            "deadline": plan.deadline,
+        }
+
     async def handle(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
@@ -47,74 +103,61 @@ class CallbackHandler:
             await self._handle_calendar_nav(update, context, data)
             return
 
-        if "_" in data:
-            parts = data.split("_")
-            if len(parts) >= 4:
-                try:
-                    year = int(parts[-3])
-                    month = int(parts[-2])
-                    day = int(parts[-1])
-                    if 1 <= month <= 12 and 1 <= day <= 31:
-                        await self._select_date(
-                            update, context, year, month, day
-                        )
-                        return
-                except (ValueError, IndexError):
-                    pass
+        if date_result := self._parse_calendar_date(data):
+            await self._select_date(update, context, *date_result)
+            return
 
-        if data.startswith("view_plan_"):
-            plan_id = int(data.split("_")[2])
+        if plan_id := self._parse_id(data, "view_plan_", 2):
             await self._show_plan_detail(update, context, plan_id)
             return
 
-        if data.startswith("task_detail_"):
-            task_id = int(data.split("_")[2])
+        if task_id := self._parse_id(data, "task_detail_", 2):
             await self._show_task_detail(update, context, task_id)
             return
 
-        if data.startswith("done_"):
-            task_id = int(data.split("_")[1])
+        if task_id := self._parse_id(data, "done_", 1):
             await self._mark_task_done(update, context, task_id)
             return
 
-        if data.startswith("undone_"):
-            task_id = int(data.split("_")[1])
+        if task_id := self._parse_id(data, "undone_", 1):
             await self._mark_task_undone(update, context, task_id)
             return
 
-        if data.startswith("delete_plan_"):
-            plan_id = int(data.split("_")[2])
+        if plan_id := self._parse_id(data, "delete_plan_", 2):
             await self._delete_plan(update, context, plan_id)
             return
 
-        if data.startswith("delete_task_"):
-            task_id = int(data.split("_")[2])
+        if task_id := self._parse_id(data, "delete_task_", 2):
             await self._delete_task(update, context, task_id)
             return
 
-        if data.startswith("plan_") and not data.startswith("view_plan"):
-            plan_id = int(data.split("_")[1])
+        if plan_id := self._parse_id(data, "plan_", 1):
             await self._show_task_title_input(update, context, plan_id)
             return
 
-        if data.startswith("task_title_"):
-            plan_id = int(data.split("_")[2])
+        if plan_id := self._parse_id(data, "task_title_", 2):
             await self._show_task_deadline_input(update, context, plan_id)
             return
 
     async def _back_to_menu(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
-        query = update.callback_query
-        await query.edit_message_text(
-            MessageTemplates.MAIN_MENU, reply_markup=MainMenuKeyboard.build()
-        )
+        await self._return_to_main_menu(update, context, clear_data=False)
 
     async def _cancel_date(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ):
+        await self._return_to_main_menu(update, context, clear_data=True)
+
+    async def _return_to_main_menu(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        clear_data: bool = False,
+    ):
         query = update.callback_query
-        context.user_data.clear()
+        if clear_data:
+            context.user_data.clear()
         await query.edit_message_text(
             MessageTemplates.MAIN_MENU, reply_markup=MainMenuKeyboard.build()
         )
@@ -264,13 +307,7 @@ class CallbackHandler:
 
         status_icon = "✅" if task.is_done else "⬜"
 
-        task_dict = {
-            "task_id": task.task_id,
-            "plan_id": task.plan_id,
-            "title": task.title,
-            "deadline": task.deadline,
-            "is_done": task.is_done,
-        }
+        task_dict = self._task_to_dict(task)
 
         await query.edit_message_text(
             MessageTemplates.TASK_DETAIL_FORMAT.format(
@@ -288,51 +325,23 @@ class CallbackHandler:
     async def _mark_task_done(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
     ):
-        query = update.callback_query
-
         task = await storage.get_task(task_id)
         if task is None:
-            await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
+            await update.callback_query.edit_message_text(
+                MessageTemplates.TASK_NOT_FOUND
+            )
             return
 
         if task.is_done:
             await self._show_task_detail(update, context, task_id)
             return
 
-        task.is_done = True
-        await storage.update_task(task)
-
-        await self.reminder_service.cancel_reminder(task_id)
-
-        await self._show_task_detail(update, context, task_id)
+        await self._set_task_status(update, context, task_id, True)
 
     async def _mark_task_undone(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
     ):
-        query = update.callback_query
-
-        task = await storage.get_task(task_id)
-        if task is None:
-            await query.edit_message_text(MessageTemplates.TASK_NOT_FOUND)
-            return
-
-        task.is_done = False
-        await storage.update_task(task)
-
-        plan = await self.study_service.get_plan_by_id(task.plan_id)
-        if plan:
-            task_dict = {
-                "task_id": task.task_id,
-                "plan_id": task.plan_id,
-                "title": task.title,
-                "deadline": task.deadline,
-                "is_done": task.is_done,
-            }
-            await self.reminder_service.schedule_task_reminders(
-                task_dict, plan
-            )
-
-        await self._show_task_detail(update, context, task_id)
+        await self._set_task_status(update, context, task_id, False)
 
     async def _delete_task(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, task_id: int
@@ -361,9 +370,14 @@ class CallbackHandler:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: int
     ):
         query = update.callback_query
+        user_id = update.effective_user.id
 
         plan = await self.study_service.get_plan_by_id(plan_id)
         if not plan:
+            await query.edit_message_text(MessageTemplates.PLAN_NOT_FOUND)
+            return
+
+        if plan.user_id != user_id:
             await query.edit_message_text(MessageTemplates.PLAN_NOT_FOUND)
             return
 
@@ -491,19 +505,8 @@ class CallbackHandler:
                 )
                 plan = await self.study_service.get_plan_by_id(plan_id)
 
-                task_dict = {
-                    "task_id": task.task_id,
-                    "plan_id": task.plan_id,
-                    "title": task.title,
-                    "deadline": task.deadline,
-                    "is_done": task.is_done,
-                }
-                plan_dict = {
-                    "plan_id": plan.plan_id,
-                    "user_id": plan.user_id,
-                    "subject": plan.subject,
-                    "deadline": plan.deadline,
-                }
+                task_dict = self._task_to_dict(task)
+                plan_dict = self._plan_to_dict(plan)
                 await self.reminder_service.schedule_task_reminders(
                     task_dict, plan_dict
                 )
