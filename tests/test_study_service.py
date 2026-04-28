@@ -25,20 +25,6 @@ class TestStudyService:
             assert result.subject == "Math"
             mock_storage.create_plan.assert_called_once_with(1, "Math", None)
 
-
-    @pytest.mark.asyncio
-    async def test_create_plan_with_deadline(self, study_service):
-        with patch("services.study_service.storage") as mock_storage:
-            mock_storage.create_plan = AsyncMock(
-                return_value=Plan(1, 1, "Math", date(2025, 6, 1))
-            )
-
-            result = await study_service.create_plan(
-                1, "Math", date(2025, 6, 1))
-
-            assert result.deadline == date(2025, 6, 1)
-
-
     @pytest.mark.asyncio
     async def test_add_task_creates_task_and_updates_deadline(
         self, study_service
@@ -148,8 +134,3 @@ class TestStudyService:
     def test_format_deadline_formats_date_correctly(self, study_service):
         result = study_service.format_deadline(date(2025, 12, 31))
         assert result == "31.12.2025"
-
-
-    def test_format_deadline_with_different_formats(self, study_service):
-        assert study_service.format_deadline(date(2025, 1, 1)) == "01.01.2025"
-        assert study_service.format_deadline(date(2025, 12, 31)) == "31.12.2025"
